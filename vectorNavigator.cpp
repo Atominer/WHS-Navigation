@@ -39,6 +39,13 @@
 //
 //make output readable
 //
+//	change weightmap to infomap
+//	room numbers contained by a coordinate point include all rooms in all adjacent hallways
+//		include final check that there is not a closer node that contains the desired room number
+//
+//		check for connection with shared rooms
+//			direct toward that coordinates but include that the destination will occur in that hallway
+//
 //add functionality to search rooms by teacher and subject
 //
 //add functionality to navigate within a connection to find a room
@@ -92,7 +99,7 @@ class Connection{
 
 
 int main(){
-	int start, end, navPointer;
+	int start, end, dest, navPointer;
 	std::vector<int> nodes;
 	std::vector<bool> visitedNodes;
 	//Connection *weightGraph[10][10];
@@ -105,7 +112,7 @@ int main(){
 	std::cout << "Enter room number to start from : ";
 	std::cin >> start;
 	std::cout << "Enter room number to navigate to : ";
-	std::cin >> end;
+	std::cin >> dest;
 
 	std::cout << "MAP CREATION START" << std::endl;
 
@@ -172,7 +179,7 @@ int main(){
 			startFound = true;
 		}
 
-		if(it->second->findRoom(end) && !endFound){
+		if(it->second->findRoom(dest) && !endFound){
 			end = it->first.first;
 				
 			endFound = true;
@@ -258,6 +265,8 @@ int main(){
 		}
 	}
 
+	std::stack<int> directionStack (path);
+
 	std::cout << "the path is: ";
 	while(!path.empty()){
 		if(path.top()==end)
@@ -267,6 +276,34 @@ int main(){
 		path.pop();
 	}
 	std::cout << "; END OF PATH" << std::endl;
+
+	//Prints the readable directions
+
+	while(!directionStack.empty()){
+
+		
+		if(directionStack.size()==1){
+
+			//directs toward node with a connection that contains the dest
+			//
+
+			for(int i = 0; i < nodes.size(); i++){
+
+				if(weightMap.count(std::make_pair(directionStack.top(),i)) && weightMap[std::make_pair(directionStack.top(), i)]->findRoom(dest)){
+					std::cout << weightMap[std::make_pair(directionStack.top(), i)]->getDir() << "; your destination is in this area" << std::endl;;
+					directionStack.pop();
+					break;
+				}
+			}
+		}
+		else{
+			int from = directionStack.top();
+			directionStack.pop();
+			std::cout << weightMap[std::make_pair(from, directionStack.top())]->getDir() << std::endl;
+		}
+
+
+	}
 
 	return 0;
 }
